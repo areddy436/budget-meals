@@ -18,4 +18,4 @@ app.include_router(grocery.router, prefix="/api")
 
 @app.get("/")
 def root():
-    return {"status": "FoodSecure backend running"}
+    return {"status": "Budget Meals backend running"}
