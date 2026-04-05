@@ -18,97 +18,81 @@ def build_prompt(profile: UserProfile) -> str:
     month = datetime.now().strftime("%B")
 
     diet_desc = {
-        "Vegan": "strictly vegan, no animal products",
-        "Vegetarian": "vegetarian, no meat or fish",
-        "Plant-focused (not plant only)": "plant-focused but includes some animal products",
-        "Omnivore": "omnivore, eats any meat or animal products"
+        "vegan": "strictly vegan, no animal products",
+        "vegetarian": "vegetarian, no meat or fish",
+        "plant_focused": f"plant-focused but eats: {', '.join(profile.meats_eaten) or 'some meats'}",
+        "omnivore": f"omnivore, eats: {', '.join(profile.meats_eaten) or 'any meat'}"
     }.get(profile.diet_type, profile.diet_type)
 
     time_desc = {
-        "Under 15 min": "under 15 minutes",
-        "15–30 min": "15–30 minutes",
-        "30–45 min": "30–45 minutes",
-        "45–60 min": "45–60 minutes",
-        "No limit": "any duration"
+        "under_15": "under 15 minutes",
+        "15_30": "15–30 minutes",
+        "30_45": "30–45 minutes",
+        "45_60": "45–60 minutes",
+        "no_limit": "any duration"
     }.get(profile.cook_time_max, "30 minutes")
 
-    # Meal counts from the MealCounts model
-    mc = profile.meal_counts
-    total_meals = mc.breakfasts + mc.lunches + mc.dinners + mc.snacks + mc.juices
+    habits = []
+    habit_map = {
+        "skip_breakfast": "skips breakfast",
+        "light_dinner": "prefers light dinners",
+        "intermittent_fasting": "does intermittent fasting",
+        "meal_prep_weekends": "meal preps on weekends",
+    }
+    for h in profile.eating_habits:
+        if h in habit_map:
+            habits.append(habit_map[h])
 
-    nutrient_line = ""
-    if profile.nutrition_goal == "Focus on vitamins/micronutrients" and profile.nutrient_focus:
-        nutrient_line = f"- Key nutrients to prioritize: {', '.join(profile.nutrient_focus)}"
-
-    ebt_line = ""
-    if profile.has_ebt:
-        ebt_line = "- User has EBT/CalFresh — prioritize EBT-eligible whole foods"
-
-    ucsd_line = ""
-    if profile.is_ucsd_student:
-        ucsd_line = "- User is a UCSD student — mention campus food pantry where relevant"
-
-    height_line = f"- Height: {profile.height} inches" if profile.height else ""
+    total_meals = profile.meals_per_day * 7
 
     return f"""
-                You are a nutritionist creating a personalized meal plan.
+You are a nutritionist creating a personalized 7-day meal plan.
 
-                USER:
-                - Name: {profile.name}, Age: {profile.age}, Weight: {profile.weight_lbs} lbs
-                {height_line}
-                - Location: {profile.location} (month: {month})
-                - Activity level: {profile.activity_level}
-                - Nutrition goal: {profile.nutrition_goal}
-                {nutrient_line}
-                - Diet: {diet_desc}
-                - Allergies: {', '.join(profile.allergies) or 'none'}
-                - Max cook time: {time_desc}
-                - Weekly budget: ${profile.budget_weekly}
-                - Kitchen access: {profile.has_full_kitchen}
-                {ebt_line}
-                {ucsd_line}
+USER:
+- Name: {profile.name}, Age: {profile.age}, Weight: {profile.weight_lbs} lbs
+- Location: {profile.location} (month: {month})
+- Goal: {profile.fitness_goal}, Activity: {profile.activity_level}
+- Nutrition goal: {profile.nutrition_goal}
+- Diet: {diet_desc}
+- Allergies: {', '.join(profile.allergies) or 'none'}
+- Habits: {', '.join(habits) or 'none'}
+- Max cook time: {time_desc}
+- Meals per day: {profile.meals_per_day}
+- Weekly budget: ${profile.budget_weekly}
+- Kitchen: {profile.has_full_kitchen}
 
-                MEAL COUNTS FOR THE WEEK:
-                - Breakfasts: {mc.breakfasts}
-                - Lunches: {mc.lunches}
-                - Dinners: {mc.dinners}
-                - Snacks: {mc.snacks}
-                - Juices / Smoothies: {mc.juices}
-                - Total meals: {total_meals}
+RULES:
+1. Generate exactly {total_meals} meals covering 7 days
+2. Respect all allergies and diet type strictly
+3. Prefer seasonal produce in {profile.location} in {month}
+4. Keep ingredients affordable for ${profile.budget_weekly}/week
+5. Never repeat the same meal
+6. Mark seasonal meals with seasonal: true
+7. Write clear step-by-step instructions as one string
 
-                RULES:
-                1. Generate exactly {total_meals} meals matching the counts above
-                2. Meal type must be one of: breakfast, lunch, dinner, snack, juice
-                3. Respect all allergies and diet type strictly
-                4. Prefer seasonal produce in {profile.location} in {month}
-                5. Keep ingredients affordable for ${profile.budget_weekly}/week
-                6. Never repeat the same meal
-                7. Mark seasonal meals with seasonal: true
-                8. Write clear step-by-step instructions as one string
-
-                Return ONLY valid JSON, no markdown, no explanation:
-                {{
-                "meals": [
-                    {{
-                    "name": "Meal Name",
-                    "type": "breakfast",
-                    "cookTime": 10,
-                    "calories": 380,
-                    "protein": 14,
-                    "carbs": 52,
-                    "fat": 10,
-                    "fiber": 5,
-                    "ingredients": [
-                        {{"name": "Rolled oats", "amount": "½ cup", "inPantry": false}}
-                    ],
-                    "instructions": "Step 1. Step 2. Step 3.",
-                    "seasonal": true
-                    }}
-                ],
-                "weeklySummary": "One sentence summary of the plan.",
-                "prepTip": "One practical cooking tip for this person."
-                }}
-            """
+Return ONLY valid JSON, no markdown, no explanation:
+{{
+  "meals": [
+    {{
+      "name": "Meal Name",
+      "type": "breakfast",
+      "cookTime": 10,
+      "calories": 380,
+      "protein": 14,
+      "carbs": 52,
+      "fat": 10,
+      "fiber": 5,
+      "ingredients": [
+        {{"name": "Rolled oats", "amount": "½ cup", "inPantry": false}}
+      ],
+      "instructions": "Step 1. Step 2. Step 3.",
+      "seasonal": true
+    }}
+  ],
+  "weeklySummary": "One sentence summary of the plan.",
+  "prepTip": "One practical cooking tip for this person."
+}}
+"""
 
 async def generate_meals(profile: UserProfile) -> tuple:
     """Returns (meals, weeklySummary, prepTip)"""
@@ -168,4 +152,4 @@ async def generate_meals(profile: UserProfile) -> tuple:
             seasonal=m.get("seasonal", False)
         ))
 
-    return meals, parsed.get("weeklySummary", ""), parsed.get("prepTip", "")
+    return meals, parsed.get("weeklySummary", ""), parsed.get("prepTip", "") 

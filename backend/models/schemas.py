@@ -2,11 +2,11 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict
 
 class MealCounts(BaseModel):
-    breakfasts: int 
-    lunches: int
-    dinners: int
-    snacks: int
-    juices: int 
+    breakfasts: int=0
+    lunches: int=0
+    dinners: int=0
+    snacks: int=0
+    juices: int =0
 
 class UserProfile(BaseModel):
     name: Optional[str] = ""
