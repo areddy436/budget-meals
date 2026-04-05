@@ -13,14 +13,14 @@ app = FastAPI(title="Budget Meals API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://josue-interparietal-unloveably.ngrok-free.dev",
+        "https://budget-meals-production.up.railway.app",  # your real Lovable URL
         "https://your-budget-meals.lovable.app",  # your real Lovable URL
         "http://localhost:3000",
         "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*", "ngrok-skip-browser-warning" ],
+    allow_headers=["*" ],
 )
 
 @app.get("/")
