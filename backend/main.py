@@ -13,8 +13,8 @@ app = FastAPI(title="Budget Meals API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://budget-meals-production.up.railway.app",  # your real Lovable URL
-        "https://your-budget-meals.lovable.app",  # your real Lovable URL
+        "https://budget-meals-production.up.railway.app", 
+        "https://your-budget-meals.lovable.app", 
         "http://localhost:3000",
         "http://localhost:5173",
     ],

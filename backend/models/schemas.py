@@ -1,25 +1,31 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
+
+class MealCounts(BaseModel):
+    breakfasts: int 
+    lunches: int
+    dinners: int
+    snacks: int
+    juices: int 
 
 class UserProfile(BaseModel):
-    name: str
+    name: Optional[str] = ""
     age: int
     weight_lbs: float
-    location: str
-    fitness_goal: str
+    height: Optional[float] = None
+    location: str = "San Diego, CA"
     activity_level: str
-    workout_duration: str
     nutrition_goal: str
     diet_type: str
-    meats_eaten: List[str] = []
     allergies: List[str] = []
-    eating_habits: List[str] = []
+    nutrient_focus: List[str] = []
     budget_weekly: float
     cook_time_max: str
-    meals_per_day: int = 3
-    has_full_kitchen: str = "yes"
+    meal_counts: MealCounts = MealCounts()   # typed model instead of raw dict
+    has_full_kitchen: str = "Yes"
     is_ucsd_student: bool = False
     has_ebt: bool = False
+    food_assistance: List[str] = []
     wants_benefits_info: bool = True
 
 # Matches Lovable's ingredient shape exactly
@@ -32,7 +38,7 @@ class IngredientItem(BaseModel):
 class Meal(BaseModel):
     id: str
     name: str
-    type: str          # 'breakfast' | 'lunch' | 'dinner' | 'snack'
+    type: str          # 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'juice'
     cookTime: int
     calories: int
     protein: int

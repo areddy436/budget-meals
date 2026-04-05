@@ -5,7 +5,7 @@ import json
 from dotenv import load_dotenv     
 from browser_use import Agent, BrowserSession, BrowserProfile   # fixed import
 from langchain_openai import ChatOpenAI
-from models.schemas import GroceryItem, StoreOption, Meal
+from models.schemas import GroceryItem, StoreOption, StorePrice, Meal, IngredientItem
 from agents.location_agent import find_nearby_stores
 from typing import List
 
@@ -38,13 +38,7 @@ def extract_ingredients(meals: List[Meal]) -> List[str]:
     }
     for meal in meals:
         for ing in meal.ingredients:
-            words = ing.split()
-            clean = [
-                w for w in words
-                if not w.replace('.','').replace('/','').replace('½','').replace('¼','').isnumeric()
-                and w.lower() not in units
-            ]
-            name = " ".join(clean).lower().strip()
+            name = ing.name.lower().strip()
             if name and name not in seen:
                 seen.add(name)
                 ingredients.append(name)
@@ -198,7 +192,6 @@ async def generate_grocery_list(
     budget: float,
     location: str
 ):
-    from models.schemas import GroceryItem, StorePrice, StoreOption
 
     ingredients = extract_ingredients(meals)
     nearby_stores = await find_nearby_stores(location)

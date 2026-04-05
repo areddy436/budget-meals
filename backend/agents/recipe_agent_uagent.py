@@ -12,6 +12,7 @@ Run:      python -m backend.agents.recipe_agent_uagent
 """
  
 import os
+from typing import Optional
 from uagents import Agent, Context, Model
  
 # ── 1. Import your existing logic (file stays untouched) ──────────────────────
@@ -25,21 +26,15 @@ from backend.models.schemas import UserProfile
 print("script started")
  
 class MealPlanRequest(Model):
-    age: int
-    weight_lbs: float
-    location: str
-    fitness_goal: str
-    activity_level: str
-    workout_duration: str
-    nutrition_goal: str
-    diet_type: str
-    meats_eaten: list[str] = []
-    allergies: list[str] = []
-    eating_habits: list[str] = []
-    cook_time_max: str
-    meals_per_day: int
-    has_full_kitchen: bool
-    budget_weekly: float
+    name: str = ""
+    height: Optional[float] = None
+    nutrient_focus: list[str] = []
+    meal_counts: dict = {}
+    has_full_kitchen: str = "Yes"  # str not bool
+    food_assistance: list[str] = []
+    has_ebt: bool = False
+    is_ucsd_student: bool = False
+    wants_benefits_info: bool = True
  
  
 class MealPlanResponse(Model):
@@ -88,21 +83,14 @@ async def handle_meal_plan_request(
     try:
         # Build the UserProfile your existing code already expects
         profile = UserProfile(
-            age=msg.age,
-            weight_lbs=msg.weight_lbs,
-            location=msg.location,
-            fitness_goal=msg.fitness_goal,
-            activity_level=msg.activity_level,
-            workout_duration=msg.workout_duration,
-            nutrition_goal=msg.nutrition_goal,
-            diet_type=msg.diet_type,
-            meats_eaten=msg.meats_eaten,
-            allergies=msg.allergies,
-            eating_habits=msg.eating_habits,
-            cook_time_max=msg.cook_time_max,
-            meals_per_day=msg.meals_per_day,
-            has_full_kitchen=msg.has_full_kitchen,
-            budget_weekly=msg.budget_weekly,
+            name=msg.name,
+            height=msg.height,
+            nutrient_focus=msg.nutrient_focus,
+            meal_counts=msg.meal_counts,
+            food_assistance=msg.food_assistance,
+            has_ebt=msg.has_ebt,
+            is_ucsd_student=msg.is_ucsd_student,
+            wants_benefits_info=msg.wants_benefits_info
         )
  
         # Call generate_meal_plan() from your existing recipe_agent.py
